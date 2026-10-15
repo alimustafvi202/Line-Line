@@ -1,0 +1,39 @@
+# Node & Next.js
+node_modules/
+.next/
+out/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data directories (raw and processed ECG data)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Outputs (generated figures, tables, trained models)
+outputs/figures/*
+!outputs/figures/.gitkeep
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

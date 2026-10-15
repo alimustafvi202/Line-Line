@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardioAI | ECG Heart Anomaly Diagnostics & Research</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Navigation & Controls Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="pulse-indicator">
+        <span class="pulse-ring"></span>
+        <span class="pulse-dot"></span>
+      </div>
+      <div>
+        <h1>CardioAI <span class="badge">Research v1.0</span></h1>
+        <p class="subtitle">AI-Based ECG Heart Anomaly Detection | MIT-BIH Arrhythmia Database</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="control-group">
+        <label for="recordSelect">Patient Record</label>
+        <select id="recordSelect" class="custom-select">
+          <option value="" disabled selected>Loading records...</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="modelSelect">AI Model Architecture</label>
+        <select id="modelSelect" class="custom-select">
+          <option value="" disabled selected>Loading models...</option>
+        </select>
+      </div>
+
+      <button id="runAiBtn" class="btn btn-primary">
+        <span class="btn-icon">⚡</span> Run AI Diagnostics
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-container">
+    
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="oscilloscopeTab">Live ECG Monitor & AI</button>
+      <button class="tab-btn" data-tab="benchmarkTab">Academic Benchmarks & Models</button>
+      <button class="tab-btn" data-tab="aboutTab">Clinical Methodology & AAMI Standard</button>
+    </nav>
+
+    <!-- Tab 1: Live Monitor & AI Diagnostics -->
+    <div id="oscilloscopeTab" class="tab-content active">
+      
+      <!-- Real-Time ECG Oscilloscope Monitor -->
+      <section class="card monitor-card">
+        <div class="card-header">
+          <div class="monitor-title">
+            <span class="live-tag">LIVE FEED</span>
+            <h2>ECG Oscilloscope Monitor (<span id="leadDisplay">Lead MLII</span>)</h2>
+          </div>
+          <div class="monitor-stats">
+            <div class="stat-pill">
+              <span class="stat-label">Sampling Rate:</span>
+              <span id="fsDisplay" class="stat-val">360 Hz</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Heart Rate (Est.):</span>
+              <span id="bpmDisplay" class="stat-val">74 BPM</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Total Beats:</span>
+              <span id="totalBeatsDisplay" class="stat-val">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="oscilloscope-wrapper">
+          <canvas id="ecgCanvas" width="1200" height="280"></canvas>
+          <div class="oscilloscope-overlay">
+            <div class="grid-label y-max">+3.0 mV</div>
+            <div class="grid-label y-zero"> 0.0 mV</div>
+            <div class="grid-label y-min">-3.0 mV</div>
+          </div>
+        </div>
+
+        <div class="monitor-footer">
+          <div class="playback-controls">
+            <button id="playPauseBtn" class="ctrl-btn">⏸ Pause</button>
+            <button id="resetPlayBtn" class="ctrl-btn">⏮ Rewind</button>
+            <div class="speed-selector">
+              <span>Speed:</span>
+              <button class="speed-btn" data-speed="0.5">0.5x</button>
+              <button class="speed-btn active" data-speed="1.0">1.0x</button>
+              <button class="speed-btn" data-speed="2.0">2.0x</button>
+            </div>
+          </div>
+
+          <div class="legend-bar">
+            <span class="legend-item"><span class="legend-color color-n"></span> Normal (N)</span>
+            <span class="legend-item"><span class="legend-color color-s"></span> Supraventricular (S)</span>
+            <span class="legend-item"><span class="legend-color color-v"></span> Ventricular Ectopic (V)</span>
+            <span class="legend-item"><span class="legend-color color-f"></span> Fusion (F)</span>
+            <span class="legend-item"><span class="legend-color color-q"></span> Unknown / Paced (Q)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI Metrics Overview -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Patient Record Accuracy</div>
+          <div class="kpi-value" id="kpiAccuracy">--%</div>
+          <div class="kpi-subtext" id="kpiAccuracySub">Click "Run AI Diagnostics" to analyze</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Macro F1-Score (Balanced)</div>
+          <div class="kpi-value highlight" id="kpiMacroF1">--</div>
+          <div class="kpi-subtext">Penalizes minority class neglect</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Ventricular Ectopic (V) Recall</div>
+          <div class="kpi-value success" id="kpiVRecall">--%</div>
+          <div class="kpi-subtext">Critical PVC detection rate</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Clinical Anomaly Status</div>
+          <div class="kpi-value alert" id="kpiStatus">AWAITING RUN</div>
+          <div class="kpi-subtext" id="kpiStatusSub">Patient 100 loaded</div>
+        </div>
+      </section>
+
+      <!-- Two-Column Interactive Analysis Section -->
+      <div class="analysis-split">
+        
+        <!-- Left: Interactive Heartbeat Inspector -->
+        <section class="card beat-inspector-card">
+          <div class="card-header">
+            <h3>🔍 Individual Heartbeat Inspector</h3>
+            <span class="badge">Click any beat below to zoom</span>
+          </div>
+
+          <div class="beat-inspector-body">
+            <div class="beat-selector-bar" id="beatSelectorBar">
+              <!-- Dynamically populated sample beat pill buttons -->
+              <span class="loading-msg">Run AI Diagnostics to inspect sample beats...</span>
+            </div>
+
+            <div class="beat-detail-view">
+              <div class="beat-chart-wrapper">
+                <canvas id="beatCanvas" width="450" height="220"></canvas>
+                <div class="r-peak-tag">Annotated R-Peak (t = 0 ms)</div>
+              </div>
+
+              <div class="beat-prediction-details">
+                <div class="prediction-header">
+                  <div>
+                    <span class="detail-label">Predicted Class:</span>
+                    <h4 id="detailPredClass" class="pred-title">--</h4>
+                  </div>
+                  <div>
+                    <span class="detail-label">Ground Truth:</span>
+                    <h4 id="detailTrueClass" class="true-title">--</h4>
+                  </div>
+                </div>
+
+                <div class="confidence-bars" id="confidenceBars">
+                  <div class="conf-item">
+                    <span class="conf-class">Class N (Normal):</span>
+                    <div class="bar-container"><div class="bar-fill" style="width: 0%"></div></div>
+                    <span class="conf-pct">--%</span>
+                  </div>
+                  <div class="conf-item">
+                    <span class="conf-class">Class S (SVEB):</span>
+                    <div class="bar-container"><div class="bar-fill" style="width: 0%"></div></div>
+                    <span class="conf-pct">--%</span>
+                  </div>
+                  <div class="conf-item">
+                    <span class="conf-class">Class V (VEB):</span>
+                    <div class="bar-container"><div class="bar-fill" style="width: 0%"></div></div>
+                    <span class="conf-pct">--%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Confusion Matrix & Classification Report -->
+        <section class="card metrics-card">
+          <div class="card-header">
+            <h3>📊 Confusion Matrix & AAMI Performance</h3>
+            <span class="badge">Unseen Patient Evaluation</span>
+          </div>
+
+          <div class="matrix-container">
+            <table class="matrix-table" id="matrixTable">
+              <thead>
+                <tr>
+                  <th>True \ Pred</th>
+                  <th>N</th>
+                  <th>S</th>
+                  <th>V</th>
+                  <th>F</th>
+                  <th>Q</th>
+                </tr>
+              </thead>
+              <tbody id="matrixBody">
+                <tr><td colspan="6" class="placeholder-cell">Run AI Diagnostics to populate confusion matrix</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="per-class-summary" id="perClassSummary">
+            <!-- Dynamic class report -->
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <!-- Tab 2: Academic Benchmarks -->
+    <div id="benchmarkTab" class="tab-content">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Academic Experiment Progression & Benchmarks</h2>
+            <p class="subtitle">Quantitative validation demonstrating the solution to The Accuracy Paradox</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th>Experiment Name</th>
+                <th>Validation Protocol</th>
+                <th>Training Cohort (DS1)</th>
+                <th>Test Patient (DS2)</th>
+                <th>Accuracy</th>
+                <th>Macro F1</th>
+                <th>Class V (VEB) Recall</th>
+                <th>Class N F1</th>
+                <th>Key Findings / Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarkBody">
+              <!-- Dynamically populated from API -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab 3: Clinical Methodology -->
+    <div id="aboutTab" class="tab-content">
+      <section class="card methodology-card">
+        <h2>Clinical Methodology & Rigorous Evaluation Standards</h2>
+        
+        <div class="method-grid">
+          <div class="method-item">
+            <h3>1. Zero-Phase Bandpass Filtering</h3>
+            <p>Raw ECG leads are filtered using a 3rd-order digital Butterworth bandpass filter (<strong>0.5 Hz – 40.0 Hz</strong>) with zero phase distortion (<code>scipy.signal.filtfilt</code>). This removes respiration baseline drift and 50/60 Hz powerline interference without shifting R-peak locations.</p>
+          </div>
+
+          <div class="method-item">
+            <h3>2. Data Leakage Prevention (De Chazal 2004)</h3>
+            <p>We enforce a strict <strong>inter-patient partition</strong>. Naive random heartbeat splitting produces artificially inflated scores (>98%) because heartbeats from the same patient share morphological quirks. In this system, testing is performed exclusively on unseen patients from the DS2 cohort.</p>
+          </div>
+
+          <div class="method-item">
+            <h3>3. AAMI EC57 5-Class Super-Group Standard</h3>
+            <p>Annotation symbols from PhysioNet MIT-BIH recordings are mapped into:
+              <strong>N</strong> (Non-Ectopic), <strong>S</strong> (Supraventricular Ectopic), <strong>V</strong> (Ventricular Ectopic), <strong>F</strong> (Fusion), and <strong>Q</strong> (Unknown / Paced). Spurious non-beat markers (<code>+</code>, <code>~</code>, comments) are completely discarded.</p>
+          </div>
+
+          <div class="method-item">
+            <h3>4. Lightweight 1D-CNN Architecture</h3>
+            <p>A 4-block 1D-CNN with Batch Normalization, Max-Pooling, Dropout, and Global Adaptive Average Pooling (109,861 trainable parameters). It performs real-time heartbeat anomaly inference in under 20 milliseconds on standard CPU hardware.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>AI-Based Heart Anomaly Detection Research Framework | Official MIT-BIH Arrhythmia Database (PhysioNet v1.0.0)</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

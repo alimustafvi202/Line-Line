@@ -1,0 +1,58 @@
+{
+  "project_title": "AI-Based Heart Anomaly Detection Using ECG Signals",
+  "dataset": {
+    "name": "MIT-BIH Arrhythmia Database",
+    "version": "1.0.0",
+    "physionet_url": "https://physionet.org/content/mitdb/1.0.0/",
+    "sampling_rate_hz": 360,
+    "total_records": 48
+  },
+  "reproducibility": {
+    "random_seed": 42,
+    "python_version": "3.12.10",
+    "os": "Windows",
+    "core_libraries": {
+      "torch": "2.14.1",
+      "wfdb": "4.3.1",
+      "scikit_learn": "1.9.1",
+      "scipy": "1.18.1",
+      "numpy": "2.5.4",
+      "pandas": "3.0.6",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "signal_processing": {
+    "primary_lead": "MLII",
+    "filter_type": "bandpass_butterworth",
+    "bandpass_low_hz": 0.5,
+    "bandpass_high_hz": 40.0,
+    "filter_order": 3,
+    "zero_phase": true,
+    "normalization": "z_score_per_recording",
+    "segmentation": {
+      "pre_r_samples": 90,
+      "post_r_samples": 110,
+      "total_samples": 200,
+      "duration_seconds": 0.555
+    }
+  },
+  "label_standard": "AAMI_EC57",
+  "split_protocol": {
+    "type": "inter_patient",
+    "reference": "de Chazal et al., IEEE TBME, 2004",
+    "ds1_train_records": [
+      "101", "106", "108", "109", "112", "114", "115", "116", "118", "119",
+      "122", "124", "201", "203", "205", "207", "208", "209", "215", "220",
+      "223", "230"
+    ],
+    "ds2_test_records": [
+      "100", "103", "105", "111", "113", "117", "121", "123", "200", "202",
+      "210", "212", "213", "214", "219", "221", "222", "228", "231", "232",
+      "233", "234"
+    ],
+    "excluded_paced_records": [
+      "102", "104", "107", "217"
+    ],
+    "notes": "Ensures no beats from the same patient appear in both train and test sets to prevent patient-specific data leakage."
+  }
+}
